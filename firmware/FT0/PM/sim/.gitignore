@@ -1,0 +1,5 @@
+modelsim
+vunit/modelsim.ini
+vunit/.cxl.modelsim.version
+vunit/__pycache__
+vunit/*.bak

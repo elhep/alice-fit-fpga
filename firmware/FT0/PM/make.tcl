@@ -99,7 +99,6 @@ set proj_dir [get_property directory [current_project]]
 # Set project properties
 set_property \
     -dict [list \
-	       "corecontainer.enable"  "1" \
 	       "default_lib"           "xil_defaultlib" \
 	       "ip_cache_permissions"  "read write" \
 	       "ip_output_repo"        "$proj_dir/${project_name}.cache/ip" \
