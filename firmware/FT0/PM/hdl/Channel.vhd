@@ -82,8 +82,8 @@ architecture RTL of Channel is
 
 type vector4x11 is array (0 to 3) of STD_LOGIC_VECTOR (10 downto 0);
 
-signal TDC_rdy320_0, TDC_rdy320, TDC_rdy320_1, TDC_rdy_en, TDC_out, CH_t_trig0, CH_t_trig1, CH_t_trig2, TDC_rdy, TDC_dt,CH_dt, CH_trig_f, EV, EV_0, EV_1, EV_2, EV_E, EV_de, EV_fl, EV_b1, EV_b0, CH_wait, CH_tr_en, CH_de, CH_ds, FIFO_rst, EV_rdy, spi_lock0 : STD_LOGIC; 
-signal EVENTFIFO_wr, EVENTFIFO_rd, EVENTFIFO_empty, CH_trig_on, FEV_0, FEV_1,  EV_a0, CSTR_0, CSTR_1, CSTR_2, CSTR_3, EV_am_fl, EV_am_fl0, EV_am_en, CH_rd, Evnt, Ampl_OK, Ampl_high, Time_OK, Time_OK_rd, Time_lost, Event_inp, CH_trig_a, ch_skp : STD_LOGIC;
+signal TDC_rdy320_0, TDC_rdy320, TDC_rdy320_1, TDC_rdy_en, TDC_out, CH_t_trig0, CH_t_trig1, CH_t_trig2, TDC_rdy, TDC_dt,CH_dt, CH_trig_f, EV, EV_0, EV_1, EV_2, EV_E, EV_de, EV_fl, EV_b1, EV_b0, CH_wait, CH_tr_en, CH_de, CH_ds, FIFO_rst, EV_rdy, spi_lock0 : STD_LOGIC := '0'; 
+signal EVENTFIFO_wr, EVENTFIFO_rd, EVENTFIFO_empty, CH_trig_on, FEV_0, FEV_1,  EV_a0, CSTR_0, CSTR_1, CSTR_2, CSTR_3, EV_am_fl, EV_am_fl0, EV_am_en, CH_rd, Evnt, Ampl_OK, Ampl_high, Time_OK, Time_OK_rd, Time_lost, Event_inp, CH_trig_a, ch_skp : STD_LOGIC:= '0';
 signal CH_TIME0, CH_TIME1, CH_TIME2, CH_RTIME, CH_RTIME0, R_corr : STD_LOGIC_VECTOR (11 downto 0);
 signal EV_id :  STD_LOGIC_VECTOR(5 downto 0);
 signal EV_dly : vector4x11;
@@ -102,7 +102,7 @@ signal RDF_in  : STD_LOGIC_VECTOR(32 downto 0);
 signal TDC_pause : STD_LOGIC_VECTOR(5 downto 0);
 signal TDC_load : STD_LOGIC_VECTOR(3 downto 0);
 
-signal Cal_d, Cal_d0, Cal_d1, CH_new, ev_p0, ev_p1, ev_p00, ev_p01, ch_bp, rt_sel, trig_ena : STD_LOGIC;
+signal Cal_d, Cal_d0, Cal_d1, CH_new, ev_p0, ev_p1, ev_p00, ev_p01, ch_bp, rt_sel, trig_ena : STD_LOGIC := '0';
 signal mt_cou_c : STD_LOGIC_VECTOR(2 downto 0);
 signal ch_tc0, ch_tc1, ch_tc2, ch_tc : STD_LOGIC_VECTOR(1 downto 0);
 signal Z : STD_LOGIC_VECTOR(9 downto 0);
@@ -143,14 +143,17 @@ END COMPONENT;
    
  
 begin
-CH_ampl<=CH_ampl0;
-CH_trig_outtn<=CH_trig_f;
-CH_trig_outt<=CH_trig_f when (fdd='0') else CH_trig_f and CH_trig_int;
-CH_trig_outa<=CH_trig_a; 
+  CH0_zero <= x"000";
+  CH1_zero <= x"000";
 
-pulse_in<=EV_E;  
-Event_in<=Event_inp;
-trig_ena<= not trig_dis;
+  CH_ampl<=CH_ampl0;
+  CH_trig_outtn<=CH_trig_f;
+  CH_trig_outt<=CH_trig_f when (fdd='0') else CH_trig_f and CH_trig_int;
+  CH_trig_outa<=CH_trig_a; 
+
+  pulse_in<=EV_E;  
+  Event_in<=Event_inp;
+  trig_ena<= not trig_dis;
 
 EVENTFIFO: EVENT_FIFO port map (clk => clk320, srst =>RESET, din =>EVENTFIFO_in, wr_en => EVENTFIFO_wr, rd_en =>EVENTFIFO_rd, dout => C_FOUT, full =>open, empty =>EVENTFIFO_empty);
 
@@ -175,20 +178,39 @@ ZS<=std_logic_vector(signed(Z(8 downto 0))*signed(Z(8 downto 0)));
 
 process (clk320)
 begin
-if (clk320'event and clk320='1') then
+  if (clk320'event and clk320='1') then
 
-if (chan_ena='1') then TDC_rdy320_0<=TDC_rdy_in; else TDC_rdy320_0<='0'; end if;  
+    if (chan_ena='1') then 
+      TDC_rdy320_0<=TDC_rdy_in; 
+    else 
+      TDC_rdy320_0<='0';
+    end if;  
 
-TDC_rdy320<=TDC_rdy320_0; TDC_rdy320_1<=TDC_rdy320;
-spi_lock0<=spi_lock;
+    TDC_rdy320<=TDC_rdy320_0; 
+    TDC_rdy320_1<=TDC_rdy320;
+    spi_lock0<=spi_lock;
 
-if (chan_ena='1') then EV_0<=CGE; else EV_0<='0'; end if;
+    if (chan_ena='1') then 
+      EV_0<=CGE; 
+    else 
+      EV_0<='0'; 
+    end if;
  
-EV_rdy<= EV; EV<=EV_2; EV_2<=EV_1; EV_1<=EV_0; 
+  EV_rdy<= EV; 
+  EV<=EV_2; 
+  EV_2<=EV_1; 
+  EV_1<=EV_0; 
 
-if (chan_ena='1') then  CSTR_0<=CSTR; else CSTR_0<='0'; end if;  
+  if (chan_ena='1') then  
+    CSTR_0<=CSTR; 
+  else 
+    CSTR_0<='0'; 
+  end if;  
 
-CSTR_1<=CSTR_0; CSTR_2<=CSTR_1; CSTR_3<=CSTR_2;
+  CSTR_1<=CSTR_0; 
+  CSTR_2<=CSTR_1;
+  CSTR_3<=CSTR_2;
+
 if (CSTR_1='1') and (CSTR_2='0') then CH_0<=CH; end if;
 
   if (Cal_d='1') then
@@ -241,7 +263,11 @@ if (spi_lock='1') and (spi_lock0='0') then
   Z0_cal<=ZR0(25 downto 10); Z1_cal<=ZR1(25 downto 10); 
 end if;
 
-if (TDC_rdy_en='1') then CH_TIME2<=CH_TIME1; CH_TIME1<=CH_TIME0; CH_t_trig2 <= CH_t_trig1; CH_t_trig1 <= CH_t_trig0; 
+  if (TDC_rdy_en='1') then 
+    CH_TIME2<=CH_TIME1;
+    CH_TIME1<=CH_TIME0; 
+    CH_t_trig2 <= CH_t_trig1; 
+    CH_t_trig1 <= CH_t_trig0; 
     ch_tc2<=ch_tc1; ch_tc1<=ch_tc0;
 
     if (mt_cou/="001") or (CH_wait='0') then  TDC_rdy<='1';
@@ -271,30 +297,69 @@ if (mt_cou="001") then
     
     EV_dly<= EV_v & EV_dly(0 to 2); Time_OK_rd<= not Time_OK; Ampl_high<= (not Ampl_OK) and C_FOUT(8);
     
-    if (Event_inp='1') then EV_id<=BC_COU; EV_de<=EV_b1 OR (EV_E AND EV_b0); EV_fl<='1'; 
-        
-        else EV_fl<='0'; end if;
-    EV_b0<='0'; EV_b1<='0';
+    if (Event_inp='1') then 
+      EV_id<=BC_COU; 
+      EV_de<=EV_b1 OR (EV_E AND EV_b0); 
+      EV_fl<='1'; 
+    else 
+      EV_fl<='0'; 
+    end if;
+    EV_b0<='0'; 
+    EV_b1<='0';
  
-    if (TDC_rdy='1') and (CH_wait='0') then  WD_rdy<=WD_rdy+1; else WD_rdy<="00"; end if;
-    if (WD_rdy="11") then TDC_rdy<='0'; TDC_dt<='0'; end if; 
+    if (TDC_rdy='1') and (CH_wait='0') then  
+      WD_rdy<=WD_rdy+1; 
+    else 
+      WD_rdy<="00"; 
+    end if;
+    if (WD_rdy="11") then 
+      TDC_rdy<='0'; 
+      TDC_dt<='0'; 
+    end if; 
     
-    if (((CH_wait='1') and ((TDC_rdy='1') or (TDC_rdy_en='1'))) or (Time_lost='1')) and (CH_skp='0') then Evnt<='1'; else  Evnt<='0'; end if; 
+    if (((CH_wait='1') and ((TDC_rdy='1') or (TDC_rdy_en='1'))) or (Time_lost='1')) and (CH_skp='0') then 
+      Evnt<='1'; 
+    else  
+      Evnt<='0'; 
+    end if; 
     
     if (CH_wait='1') and ((TDC_rdy='1') or (TDC_rdy_en='1'))then 
-    
-           if (TDC_dt='0') and ((TDC_rdy='0') or (TDC_rdy_en='0')) then
-               TDC_rdy<='0';
-               if (CH_de='0') then CH_wait<='0'; CH_skp<='0'; else CH_de<='0'; CH_skp<='1'; end if;
-               if (TDC_rdy_en='1') then CH_trig_f<=CH_t_trig0 and CH_tr_en; else CH_trig_f<= CH_t_trig1 and CH_tr_en; end if;
-               
-           else CH_wait<='0'; CH_de<='0';  CH_dt<='1'; TDC_dt<='0'; CH_skp<='0';
-             if (CH_de='1') then CH_ds<='1'; TDC_rdy<='0'; 
-                 if (TDC_rdy_en='1') then CH_trig_f<=(CH_t_trig1 or CH_t_trig0) and CH_tr_en; else CH_trig_f<=(CH_t_trig2 or CH_t_trig1) and CH_tr_en; end if;
-               else 
-                 if (TDC_rdy_en='1') then CH_trig_f<=CH_t_trig1 and CH_tr_en; else CH_trig_f<=CH_t_trig2 and CH_tr_en; end if;
-                 end if; 
-           end if;
+      if (TDC_dt='0') and ((TDC_rdy='0') or (TDC_rdy_en='0')) then
+          TDC_rdy<='0';
+          if (CH_de='0') then 
+            CH_wait<='0'; 
+            CH_skp<='0'; 
+          else CH_de<='0'; 
+            CH_skp<='1'; 
+          end if;
+          if (TDC_rdy_en='1') then 
+            CH_trig_f<=CH_t_trig0 and CH_tr_en; 
+          else 
+            CH_trig_f<= CH_t_trig1 and CH_tr_en; 
+          end if;
+          
+      else 
+        CH_wait<='0'; 
+        CH_de<='0';  
+        CH_dt<='1'; 
+        TDC_dt<='0'; 
+        CH_skp<='0';
+        if (CH_de='1') then 
+          CH_ds<='1'; 
+          TDC_rdy<='0'; 
+          if (TDC_rdy_en='1') then
+            CH_trig_f<=(CH_t_trig1 or CH_t_trig0) and CH_tr_en; 
+          else 
+            CH_trig_f<=(CH_t_trig2 or CH_t_trig1) and CH_tr_en; 
+          end if;
+        else 
+          if (TDC_rdy_en='1') then 
+           CH_trig_f<=CH_t_trig1 and CH_tr_en; 
+          else 
+            CH_trig_f<=CH_t_trig2 and CH_tr_en; 
+          end if;
+        end if; 
+      end if;
             
     end if;
   
@@ -311,10 +376,16 @@ if (mt_cou="011") then
     EV_am_en<=EV_dly(2)(8); 
 end if;
 
-if (mt_cou="100") then EV_am_fl0<='0'; EV_am_fl<=EV_am_fl0; CH_trig_a<= trig_ena and  EV_am_fl0; CH_trig_bgnd<= EV_dly(3)(8) and  (not EV_am_fl0) and trig_ena;
-   else 
-     if (CSTR_1='1') and (CSTR_2='0') then EV_am_fl0<=EV_am_en; end if;
-end if;
+  if (mt_cou="100") then 
+    EV_am_fl0<='0';
+    EV_am_fl<=EV_am_fl0; 
+    CH_trig_a<= trig_ena and  EV_am_fl0; 
+    CH_trig_bgnd<= EV_dly(3)(8) and  (not EV_am_fl0) and trig_ena;
+  else 
+    if (CSTR_1='1') and (CSTR_2='0') then 
+      EV_am_fl0<=EV_am_en; 
+    end if;
+  end if;
 
 
 if (mt_cou="101") then 

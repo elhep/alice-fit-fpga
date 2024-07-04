@@ -86,7 +86,7 @@ FC:  OBUFT port map (O=>FSEL, I=>fcs, T=>fl_ena_b);
 
 fl_ena_b<=not fl_ena;
 
-icp: ICAPE2 generic map ( DEVICE_ID => X"3651093", ICAP_WIDTH => "X32", SIM_CFG_FILE_NAME => "NONE" )
+icp: ICAPE2 generic map ( DEVICE_ID => X"03651093", ICAP_WIDTH => "X32", SIM_CFG_FILE_NAME => "NONE" )
  port map (O => open, CLK => clk,  CSIB => cs_icp, I => icp_in, RDWRB => '0');
  
 cs_icp<= '0' when  (fl_busy='1') and (fl_rdy='1') and (cmd_adr(26 downto 24)=4) else '1';
@@ -100,7 +100,7 @@ with rbt_cou select
                  & cmd_adr(13) & cmd_adr(14) & cmd_adr(15) & cmd_adr(0) & cmd_adr(1) & cmd_adr(2) & cmd_adr(3) & cmd_adr(4) & cmd_adr(5) & cmd_adr(6) & cmd_adr(7) when "100",
            x"0C000180" when "101",
            x"000000F0" when "110",
-           x"04000000" when "111";
+           x"04000000" when others;
            
  
 
@@ -120,7 +120,7 @@ with A select
   data_out <= cmd_adr              when "00",
               fl_data              when "01",
               x"00" & end_adr      when "10",
-              x"000" & "00" & fl_busy & fl_rdy & ovf & buf_count when "11";
+              x"000" & "00" & fl_busy & fl_rdy & ovf & buf_count when others;
 
 process(clk)
 begin
